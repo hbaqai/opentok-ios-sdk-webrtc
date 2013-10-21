@@ -8,13 +8,27 @@
 
 #import "ViewController.h"
 
-@implementation ViewController {
-    OTSession* _session;
-    OTPublisher* _publisher;
-    OTSubscriber* _subscriber;
-}
-static double widgetHeight = 240;
-static double widgetWidth = 320;
+#define HEIGHT 480.0
+#define WIDTH 640.0
+#define WIDTH_TO_HEIGHT_RATIO WIDTH/HEIGHT
+#define HEIGHT_TO_WIDTH_RATIO HEIGHT/WIDTH
+
+
+@interface ViewController ()
+@property (nonatomic, strong) OTSession *session;
+@property (nonatomic, strong) OTPublisher *publisher;
+@property (nonatomic, strong) OTSubscriber *subscriber;
+@property CGRect publisherRect;
+@property CGRect subscriberRect;
+
+@end
+
+@implementation ViewController
+@synthesize session = _session;
+@synthesize publisher = _publisher;
+@synthesize subscriber = _subscriber;
+@synthesize publisherRect = _publisherRect;
+@synthesize subscriberRect = _subscriberRect;
 
 // *** Fill the following variables using your own Project info from the Dashboard  ***
 // ***                   https://dashboard.tokbox.com/projects                      ***
@@ -29,8 +43,8 @@ static bool subscribeToSelf = YES; // Change to NO to subscribe to streams other
 - (void)viewDidLoad
 {
     [super viewDidLoad];
-    _session = [[OTSession alloc] initWithSessionId:kSessionId
-                                           delegate:self];
+    self.session = [[OTSession alloc] initWithSessionId:kSessionId
+                                               delegate:self];
     [self doConnect];
 }
 
@@ -50,29 +64,67 @@ static bool subscribeToSelf = YES; // Change to NO to subscribe to streams other
 }
 
 - (void)updateSubscriber {
-    for (NSString* streamId in _session.streams) {
-        OTStream* stream = [_session.streams valueForKey:streamId];
-        if (![stream.connection.connectionId isEqualToString: _session.connection.connectionId]) {
-            _subscriber = [[OTSubscriber alloc] initWithStream:stream delegate:self];
+    for (NSString* streamId in self.session.streams) {
+        OTStream* stream = [self.session.streams valueForKey:streamId];
+        if (![stream.connection.connectionId isEqualToString: self.session.connection.connectionId]) {
+            self.subscriber = [[OTSubscriber alloc] initWithStream:stream delegate:self];
             break;
         }
     }
+}
+
+-(CGRect)publisherRect{
+    if(_publisherRect.size.height == 0.0 || _publisherRect.size.width == 0.0){
+        CGFloat publisherHeight = self.view.bounds.size.height/6.0;
+        CGFloat publisherWidth = publisherHeight * WIDTH_TO_HEIGHT_RATIO;
+        _publisherRect = CGRectMake(self.view.bounds.size.width - (publisherWidth + 20.0), 20, publisherWidth, publisherHeight);
+    }
+    return _publisherRect;
+}
+
+-(void)setPublisherRect:(CGRect)publisherRect{
+    _publisherRect = publisherRect;
+}
+
+-(CGRect)subscriberRect{
+    if(_subscriberRect.size.height == 0.0 || _subscriberRect.size.width == 0.0){
+        if(self.view.bounds.size.width * HEIGHT_TO_WIDTH_RATIO < self.view.bounds.size.height){
+            _subscriberRect = CGRectMake(0, 0, self.view.bounds.size.width, self.view.bounds.size.width * HEIGHT_TO_WIDTH_RATIO);
+        }
+        else{
+            _subscriberRect = CGRectMake(0, 0, self.view.bounds.size.height * WIDTH_TO_HEIGHT_RATIO, self.view.bounds.size.height);
+        }
+    }
+    return _subscriberRect;
+}
+
+-(void)setSubscriberRect:(CGRect)subscriberRect{
+    _subscriberRect = subscriberRect;
+}
+
+-(void)updateViewHierarchies{
+    NSLog(@"updateViewHierarchies");
+    if(self.subscriber){
+        NSLog(@"with subscriber");
+        [self.view addSubview:self.subscriber.view];
+    }
+    [self.view addSubview:self.publisher.view];
 }
 
 #pragma mark - OpenTok methods
 
 - (void)doConnect
 {
-    [_session connectWithApiKey:kApiKey token:kToken];
+    [self.session connectWithApiKey:kApiKey token:kToken];
 }
 
 - (void)doPublish
 {
-    _publisher = [[OTPublisher alloc] initWithDelegate:self];
-    [_publisher setName:[[UIDevice currentDevice] name]];
-    [_session publish:_publisher];
-    [self.view addSubview:_publisher.view];
-    [_publisher.view setFrame:CGRectMake(0, 0, widgetWidth, widgetHeight)];
+    self.publisher = [[OTPublisher alloc] initWithDelegate:self];
+    [self.publisher setName:[[UIDevice currentDevice] name]];
+    [self.session publish:self.publisher];
+    [self.publisher.view setFrame:self.publisherRect];
+    [self updateViewHierarchies];
 }
 
 - (void)sessionDidConnect:(OTSession*)session
@@ -94,24 +146,26 @@ static bool subscribeToSelf = YES; // Change to NO to subscribe to streams other
     NSLog(@"session didReceiveStream (%@)", stream.streamId);
     
     // See the declaration of subscribeToSelf above.
-    if ( (subscribeToSelf && [stream.connection.connectionId isEqualToString: _session.connection.connectionId])
+    if ( (subscribeToSelf && [stream.connection.connectionId isEqualToString: self.session.connection.connectionId])
         ||
-        (!subscribeToSelf && ![stream.connection.connectionId isEqualToString: _session.connection.connectionId])
+        (!subscribeToSelf && ![stream.connection.connectionId isEqualToString: self.session.connection.connectionId])
         ) {
-        if (!_subscriber) {
-            _subscriber = [[OTSubscriber alloc] initWithStream:stream delegate:self];
+        if (!self.subscriber) {
+            self.subscriber = [[OTSubscriber alloc] initWithStream:stream delegate:self];
+            [self.subscriber.view setFrame:self.subscriberRect];
+            [self updateViewHierarchies];
         }
     }
 }
 
 - (void)session:(OTSession*)session didDropStream:(OTStream*)stream{
     NSLog(@"session didDropStream (%@)", stream.streamId);
-    NSLog(@"_subscriber.stream.streamId (%@)", _subscriber.stream.streamId);
+    NSLog(@"self.subscriber.stream.streamId (%@)", self.subscriber.stream.streamId);
     if (!subscribeToSelf
-        && _subscriber
-        && [_subscriber.stream.streamId isEqualToString: stream.streamId])
+        && self.subscriber
+        && [self.subscriber.stream.streamId isEqualToString: stream.streamId])
     {
-        _subscriber = nil;
+        self.subscriber = nil;
         [self updateSubscriber];
     }
 }
@@ -127,8 +181,6 @@ static bool subscribeToSelf = YES; // Change to NO to subscribe to streams other
 - (void)subscriberDidConnectToStream:(OTSubscriber*)subscriber
 {
     NSLog(@"subscriberDidConnectToStream (%@)", subscriber.stream.connection.connectionId);
-    [subscriber.view setFrame:CGRectMake(0, widgetHeight, widgetWidth, widgetHeight)];
-    [self.view addSubview:subscriber.view];
 }
 
 - (void)publisher:(OTPublisher*)publisher didFailWithError:(OTError*) error {
