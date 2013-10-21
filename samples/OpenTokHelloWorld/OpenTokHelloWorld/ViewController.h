@@ -8,8 +8,9 @@
 
 #import <UIKit/UIKit.h>
 #import <Opentok/Opentok.h>
+#import "OpentokApiHelper.h"
 
-@interface ViewController : UIViewController <OTSessionDelegate, OTSubscriberDelegate, OTPublisherDelegate>
+@interface ViewController : UIViewController <OTSessionDelegate, OTSubscriberDelegate, OTPublisherDelegate, OpentokApiHelperDelegate>
 - (void)doConnect;
 - (void)doPublish;
 - (void)showAlert:(NSString*)string;

@@ -7,6 +7,7 @@
 //
 
 #import "ViewController.h"
+#import "OpentokAPICredentials.h"
 
 #define HEIGHT 480.0
 #define WIDTH 640.0
@@ -20,6 +21,7 @@
 @property (nonatomic, strong) OTSubscriber *subscriber;
 @property CGRect publisherRect;
 @property CGRect subscriberRect;
+@property (nonatomic, strong) OpentokApiHelper *helper;
 
 @end
 
@@ -29,23 +31,27 @@
 @synthesize subscriber = _subscriber;
 @synthesize publisherRect = _publisherRect;
 @synthesize subscriberRect = _subscriberRect;
+@synthesize helper = _helper;
 
 // *** Fill the following variables using your own Project info from the Dashboard  ***
 // ***                   https://dashboard.tokbox.com/projects                      ***
 static NSString* const kApiKey = @"";    // Replace with your OpenTok API key
-static NSString* const kSessionId = @""; // Replace with your generated session ID
-static NSString* const kToken = @"";     // Replace with your generated token (use the Dashboard or an OpenTok server-side library)
 
-static bool subscribeToSelf = YES; // Change to NO to subscribe to streams other than your own.
+static bool subscribeToSelf = NO; // Change to NO to subscribe to streams other than your own.
 
 #pragma mark - View lifecycle
 
 - (void)viewDidLoad
 {
     [super viewDidLoad];
-    self.session = [[OTSession alloc] initWithSessionId:kSessionId
-                                               delegate:self];
-    [self doConnect];
+    
+    //instantiate the OpenTokApiHelper and set self to be its delegate.
+    //This ViewController must then implement the OpenTokApiHelperDelegate protocol.
+    self.helper = [[OpentokApiHelper alloc] initWithApiKey:API_KEY andSecret:API_SECRET];
+    self.helper.delegate = self;
+    
+    //make a RESTful call to Tokbox for the session ID. It will be returned in a delagate method.
+    [self.helper requestSessionIdFromTokboxP2pEnabled:YES];
 }
 
 - (BOOL)prefersStatusBarHidden
@@ -115,7 +121,8 @@ static bool subscribeToSelf = YES; // Change to NO to subscribe to streams other
 
 - (void)doConnect
 {
-    [self.session connectWithApiKey:kApiKey token:kToken];
+    NSString *token = [self.helper generateTokenIdForSession:self.session.sessionId];
+    [self.session connectWithApiKey:kApiKey token:token];
 }
 
 - (void)doPublish
@@ -207,6 +214,20 @@ static bool subscribeToSelf = YES; // Change to NO to subscribe to streams other
                                           cancelButtonTitle:@"OK"
                                           otherButtonTitles:nil];
     [alert show];
+}
+
+#pragma mark - OpentokApiHelperDelegate
+-(void)openTokApiHelper:(OpentokApiHelper *)openTokApiHelper returnedSessionId:(NSString *)sessionId error:(NSError *)error{
+    NSLog(@"openTokApiHelper:resturnedSessionId Delegate Method");
+    if(!error){
+        //use the retrieved session ID to initialize the OTSession
+        self.session = [[OTSession alloc] initWithSessionId:sessionId
+                                                   delegate:self];
+        [self doConnect];
+    }
+    else{
+        NSLog(@"ERROR while obtaining session ID: %@", error);
+    }
 }
 
 @end
