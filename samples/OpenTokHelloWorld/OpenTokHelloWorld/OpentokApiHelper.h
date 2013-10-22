@@ -13,19 +13,16 @@
 @protocol OpentokApiHelperDelegate <NSObject>
 @required
 //Once a request is made, this method returns a session ID
--(void)openTokApiHelper:(OpentokApiHelper *)openTokApiHelper returnedSessionId:(NSString *)sessionId error:(NSError *)error;
+-(void)openTokApiHelper:(OpentokApiHelper *)openTokApiHelper returnedSessionId:(NSString *)sessionId andTokenId:(NSString *)tokenId error:(NSError *)error;
 @end
 
 @interface OpentokApiHelper : NSObject <NSURLConnectionDataDelegate>
 @property (nonatomic, strong) NSString *apiKey;
-@property (nonatomic, strong) NSString *secret;
 @property (nonatomic, weak) id <OpentokApiHelperDelegate> delegate;
 
 //the designated initializer
--(OpentokApiHelper *)initWithApiKey:(NSString *)apiKey andSecret:(NSString *)apiSecret;
-//requests a session ID from the Opentok server
--(void)requestSessionIdFromTokboxP2pEnabled:(BOOL)p2pEnabled;
-//generate a token locally
--(NSString *)generateTokenIdForSession:(NSString *)sessionId;
+-(OpentokApiHelper *)initWithApiKey:(NSString *)apiKey;
+//request a session and token from a server using Opentok server side SDK
+-(void)requestSessionAndTokenForRoom:(NSString *)roomName P2pEnabled:(BOOL)p2pEnabled;
 
 @end
