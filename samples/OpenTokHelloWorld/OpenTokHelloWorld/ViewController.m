@@ -16,6 +16,7 @@
 
 
 @interface ViewController ()
+@property (nonatomic, strong) NSString *tokenId;
 @property (nonatomic, strong) OTSession *session;
 @property (nonatomic, strong) OTPublisher *publisher;
 @property (nonatomic, strong) OTSubscriber *subscriber;
@@ -26,6 +27,9 @@
 @end
 
 @implementation ViewController
+@synthesize roomName = _roomName;
+@synthesize p2pEnabled = _p2pEnabled;
+@synthesize tokenId = _tokenId;
 @synthesize session = _session;
 @synthesize publisher = _publisher;
 @synthesize subscriber = _subscriber;
@@ -47,11 +51,15 @@ static bool subscribeToSelf = NO; // Change to NO to subscribe to streams other 
     
     //instantiate the OpenTokApiHelper and set self to be its delegate.
     //This ViewController must then implement the OpenTokApiHelperDelegate protocol.
-    self.helper = [[OpentokApiHelper alloc] initWithApiKey:API_KEY andSecret:API_SECRET];
+    self.helper = [[OpentokApiHelper alloc] initWithApiKey:API_KEY];
     self.helper.delegate = self;
     
     //make a RESTful call to Tokbox for the session ID. It will be returned in a delagate method.
-    [self.helper requestSessionIdFromTokboxP2pEnabled:YES];
+    [self.helper requestSessionAndTokenForRoom:self.roomName P2pEnabled:YES];
+}
+
+-(void)viewWillDisappear:(BOOL)animated{
+    if(self.session) [self.session disconnect];
 }
 
 - (BOOL)prefersStatusBarHidden
@@ -121,7 +129,7 @@ static bool subscribeToSelf = NO; // Change to NO to subscribe to streams other 
 
 - (void)doConnect
 {
-    NSString *token = [self.helper generateTokenIdForSession:self.session.sessionId];
+    NSString *token = self.tokenId;
     [self.session connectWithApiKey:kApiKey token:token];
 }
 
@@ -142,9 +150,8 @@ static bool subscribeToSelf = NO; // Change to NO to subscribe to streams other 
 
 - (void)sessionDidDisconnect:(OTSession*)session
 {
-    NSString* alertMessage = [NSString stringWithFormat:@"Session disconnected: (%@)", session.sessionId];
-    NSLog(@"sessionDidDisconnect (%@)", alertMessage);
-    [self showAlert:alertMessage];
+    NSString *sessionDisconnectLogMessage = [NSString stringWithFormat:@"Session disconnected: (%@)", session.sessionId];
+    NSLog(@"sessionDidDisconnect (%@)", sessionDisconnectLogMessage);
 }
 
 
@@ -217,12 +224,13 @@ static bool subscribeToSelf = NO; // Change to NO to subscribe to streams other 
 }
 
 #pragma mark - OpentokApiHelperDelegate
--(void)openTokApiHelper:(OpentokApiHelper *)openTokApiHelper returnedSessionId:(NSString *)sessionId error:(NSError *)error{
+-(void)openTokApiHelper:(OpentokApiHelper *)openTokApiHelper returnedSessionId:(NSString *)sessionId andTokenId:(NSString *)tokenId error:(NSError *)error{
     NSLog(@"openTokApiHelper:resturnedSessionId Delegate Method");
     if(!error){
         //use the retrieved session ID to initialize the OTSession
         self.session = [[OTSession alloc] initWithSessionId:sessionId
                                                    delegate:self];
+        self.tokenId = tokenId;
         [self doConnect];
     }
     else{

@@ -11,6 +11,8 @@
 #import "OpentokApiHelper.h"
 
 @interface ViewController : UIViewController <OTSessionDelegate, OTSubscriberDelegate, OTPublisherDelegate, OpentokApiHelperDelegate>
+@property (nonatomic, strong) NSString *roomName;
+@property BOOL p2pEnabled;
 - (void)doConnect;
 - (void)doPublish;
 - (void)showAlert:(NSString*)string;

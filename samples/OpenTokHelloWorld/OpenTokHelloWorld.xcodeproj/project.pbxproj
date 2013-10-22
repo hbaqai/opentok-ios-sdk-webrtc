@@ -31,6 +31,7 @@
 		1FE24FCF14F71E47002929E6 /* MainStoryboard_iPhone.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 1FE24FCD14F71E47002929E6 /* MainStoryboard_iPhone.storyboard */; };
 		1FE24FD214F71E47002929E6 /* MainStoryboard_iPad.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 1FE24FD014F71E47002929E6 /* MainStoryboard_iPad.storyboard */; };
 		1FE24FD514F71E47002929E6 /* ViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 1FE24FD414F71E47002929E6 /* ViewController.m */; };
+		6EA9A6D91815FEFF00A2A94A /* OpentokRoomSelectorViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 6EA9A6D81815FEFF00A2A94A /* OpentokRoomSelectorViewController.m */; };
 		6EDA1A791815236B000E5954 /* OpentokAPICredentials.m in Sources */ = {isa = PBXBuildFile; fileRef = 6EDA1A761815236B000E5954 /* OpentokAPICredentials.m */; };
 		6EDA1A7A1815236B000E5954 /* OpentokApiHelper.m in Sources */ = {isa = PBXBuildFile; fileRef = 6EDA1A781815236B000E5954 /* OpentokApiHelper.m */; };
 		6EDA1A7D1815237F000E5954 /* Base64.m in Sources */ = {isa = PBXBuildFile; fileRef = 6EDA1A7C1815237F000E5954 /* Base64.m */; };
@@ -67,6 +68,8 @@
 		1FE24FD114F71E47002929E6 /* en */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = en; path = en.lproj/MainStoryboard_iPad.storyboard; sourceTree = "<group>"; };
 		1FE24FD314F71E47002929E6 /* ViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ViewController.h; sourceTree = "<group>"; };
 		1FE24FD414F71E47002929E6 /* ViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ViewController.m; sourceTree = "<group>"; };
+		6EA9A6D71815FEFF00A2A94A /* OpentokRoomSelectorViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OpentokRoomSelectorViewController.h; sourceTree = "<group>"; };
+		6EA9A6D81815FEFF00A2A94A /* OpentokRoomSelectorViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OpentokRoomSelectorViewController.m; sourceTree = "<group>"; };
 		6EDA1A751815236B000E5954 /* OpentokAPICredentials.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OpentokAPICredentials.h; sourceTree = "<group>"; };
 		6EDA1A761815236B000E5954 /* OpentokAPICredentials.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OpentokAPICredentials.m; sourceTree = "<group>"; };
 		6EDA1A771815236B000E5954 /* OpentokApiHelper.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OpentokApiHelper.h; sourceTree = "<group>"; };
@@ -154,6 +157,8 @@
 				1FE24FCB14F71E47002929E6 /* AppDelegate.m */,
 				1FE24FCD14F71E47002929E6 /* MainStoryboard_iPhone.storyboard */,
 				1FE24FD014F71E47002929E6 /* MainStoryboard_iPad.storyboard */,
+				6EA9A6D71815FEFF00A2A94A /* OpentokRoomSelectorViewController.h */,
+				6EA9A6D81815FEFF00A2A94A /* OpentokRoomSelectorViewController.m */,
 				1F6FBCBD15546FC900FA9225 /* opentok.bundle */,
 				1FE24FD314F71E47002929E6 /* ViewController.h */,
 				1FE24FD414F71E47002929E6 /* ViewController.m */,
@@ -249,6 +254,7 @@
 				6EDA1A791815236B000E5954 /* OpentokAPICredentials.m in Sources */,
 				6EDA1A7A1815236B000E5954 /* OpentokApiHelper.m in Sources */,
 				6EDA1A7D1815237F000E5954 /* Base64.m in Sources */,
+				6EA9A6D91815FEFF00A2A94A /* OpentokRoomSelectorViewController.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
