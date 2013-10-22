@@ -23,6 +23,9 @@
 @property CGRect publisherRect;
 @property CGRect subscriberRect;
 @property (nonatomic, strong) OpentokApiHelper *helper;
+@property (nonatomic, strong) UITextView *chatWindow;
+@property (nonatomic, strong) UITextField *inputChatMessageField;
+@property (nonatomic, strong) UIButton *sendChatButton;
 
 @end
 
@@ -36,6 +39,9 @@
 @synthesize publisherRect = _publisherRect;
 @synthesize subscriberRect = _subscriberRect;
 @synthesize helper = _helper;
+@synthesize chatWindow = _chatWindow;
+@synthesize inputChatMessageField = _inputChatMessageField;
+@synthesize sendChatButton = _sendChatButton;
 
 // *** Fill the following variables using your own Project info from the Dashboard  ***
 // ***                   https://dashboard.tokbox.com/projects                      ***
@@ -125,6 +131,16 @@ static bool subscribeToSelf = NO; // Change to NO to subscribe to streams other 
     [self.view addSubview:self.publisher.view];
 }
 
+-(void)createChatBoxes{
+    NSLog(@"createChatBoxes");
+    CGRect chatWindowRect = CGRectMake(0, self.subscriber.view.bounds.size.height, self.subscriber.view.bounds.size.width, 75);
+    self.chatWindow = [[UITextView alloc] initWithFrame:chatWindowRect];
+    self.chatWindow.editable = NO;
+    self.chatWindow.layer.borderWidth = 2.0f;
+    self.chatWindow.layer.borderColor = [[UIColor grayColor] CGColor];
+    [self.view addSubview:self.chatWindow];
+}
+
 #pragma mark - OpenTok methods
 
 - (void)doConnect
@@ -145,6 +161,7 @@ static bool subscribeToSelf = NO; // Change to NO to subscribe to streams other 
 - (void)sessionDidConnect:(OTSession*)session
 {
     NSLog(@"sessionDidConnect (%@)", session.sessionId);
+    [self initializeSignalHandler];
     [self doPublish];
 }
 
@@ -167,6 +184,8 @@ static bool subscribeToSelf = NO; // Change to NO to subscribe to streams other 
         if (!self.subscriber) {
             self.subscriber = [[OTSubscriber alloc] initWithStream:stream delegate:self];
             [self.subscriber.view setFrame:self.subscriberRect];
+            //create a text view and text field to type into
+            [self createChatBoxes];
             [self updateViewHierarchies];
         }
     }
@@ -221,6 +240,19 @@ static bool subscribeToSelf = NO; // Change to NO to subscribe to streams other 
                                           cancelButtonTitle:@"OK"
                                           otherButtonTitles:nil];
     [alert show];
+}
+
+#pragma mark - Signaling
+-(void)initializeSignalHandler{
+    NSLog(@"Signal handlers initialized");
+    //set up handler for connect messages
+    [_session receiveSignalType:@"message" withHandler:^(NSString *type, id data, OTConnection *fromConnection) {
+        NSLog(@"Message from: %@", [data valueForKey:@"name"]);
+        NSLog(@"text: %@", [data valueForKey:@"text"]);
+        NSString *message = [NSString stringWithFormat:@"\n%@: %@",[data valueForKey:@"name"], [data valueForKey:@"text"]];
+        self.chatWindow.text = [self.chatWindow.text stringByAppendingString:message];
+        [self.chatWindow scrollRangeToVisible:NSMakeRange([self.chatWindow.text length], 0)];
+    }];
 }
 
 #pragma mark - OpentokApiHelperDelegate
