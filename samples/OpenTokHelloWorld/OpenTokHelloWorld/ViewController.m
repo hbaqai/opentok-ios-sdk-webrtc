@@ -15,7 +15,7 @@
 #define HEIGHT_TO_WIDTH_RATIO HEIGHT/WIDTH
 
 
-@interface ViewController ()
+@interface ViewController () <UITextFieldDelegate>
 @property (nonatomic, strong) NSString *tokenId;
 @property (nonatomic, strong) OTSession *session;
 @property (nonatomic, strong) OTPublisher *publisher;
@@ -24,7 +24,7 @@
 @property CGRect subscriberRect;
 @property (nonatomic, strong) OpentokApiHelper *helper;
 @property (nonatomic, strong) UITextView *chatWindow;
-@property (nonatomic, strong) UITextField *inputChatMessageField;
+@property (nonatomic, strong) UITextField *chatMessageField;
 @property (nonatomic, strong) UIButton *sendChatButton;
 
 @end
@@ -40,12 +40,12 @@
 @synthesize subscriberRect = _subscriberRect;
 @synthesize helper = _helper;
 @synthesize chatWindow = _chatWindow;
-@synthesize inputChatMessageField = _inputChatMessageField;
+@synthesize chatMessageField = _chatMessageField;
 @synthesize sendChatButton = _sendChatButton;
 
 // *** Fill the following variables using your own Project info from the Dashboard  ***
 // ***                   https://dashboard.tokbox.com/projects                      ***
-static NSString* const kApiKey = @"";    // Replace with your OpenTok API key
+static NSString* const kApiKey = API_KEY;    // Replace with your OpenTok API key
 
 static bool subscribeToSelf = NO; // Change to NO to subscribe to streams other than your own.
 
@@ -65,7 +65,10 @@ static bool subscribeToSelf = NO; // Change to NO to subscribe to streams other 
 }
 
 -(void)viewWillDisappear:(BOOL)animated{
-    if(self.session) [self.session disconnect];
+    if(self.session){
+        [self.session disconnect];
+        self.session = nil;
+    }
 }
 
 - (BOOL)prefersStatusBarHidden
@@ -133,12 +136,23 @@ static bool subscribeToSelf = NO; // Change to NO to subscribe to streams other 
 
 -(void)createChatBoxes{
     NSLog(@"createChatBoxes");
+    
+    //create chat window
     CGRect chatWindowRect = CGRectMake(0, self.subscriber.view.bounds.size.height, self.subscriber.view.bounds.size.width, 75);
     self.chatWindow = [[UITextView alloc] initWithFrame:chatWindowRect];
     self.chatWindow.editable = NO;
     self.chatWindow.layer.borderWidth = 2.0f;
     self.chatWindow.layer.borderColor = [[UIColor grayColor] CGColor];
     [self.view addSubview:self.chatWindow];
+    
+    //create send message window
+    CGRect chatMessageFieldRect = CGRectMake(0, self.subscriber.view.bounds.size.height + 75, self.subscriber.view.bounds.size.width, 45);
+    self.chatMessageField = [[UITextField alloc] initWithFrame:chatMessageFieldRect];
+    self.chatMessageField.delegate = self;
+    self.chatMessageField.placeholder = @"Enter a message";
+    self.chatMessageField.backgroundColor = [UIColor lightGrayColor];
+    self.chatMessageField.returnKeyType = UIReturnKeySend;
+    [self.view addSubview:self.chatMessageField];
 }
 
 #pragma mark - OpenTok methods
@@ -232,7 +246,6 @@ static bool subscribeToSelf = NO; // Change to NO to subscribe to streams other 
     [self showAlert:[NSString stringWithFormat:@"There was an error connecting to session %@", session.sessionId]];
 }
 
-
 - (void)showAlert:(NSString*)string {
     UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Message from video session"
                                                     message:string
@@ -243,6 +256,13 @@ static bool subscribeToSelf = NO; // Change to NO to subscribe to streams other 
 }
 
 #pragma mark - Signaling
+
+-(void)sendMessage:(NSDictionary *)message{
+    [self.session signalWithType:@"message" data:message completionHandler:^(NSError *error) {
+        NSLog(@"message sent: %@", message);
+    }];
+}
+
 -(void)initializeSignalHandler{
     NSLog(@"Signal handlers initialized");
     //set up handler for connect messages
@@ -268,6 +288,18 @@ static bool subscribeToSelf = NO; // Change to NO to subscribe to streams other 
     else{
         NSLog(@"ERROR while obtaining session ID: %@", error);
     }
+}
+
+#pragma mark - UITextFieldDelegate
+-(BOOL)textFieldShouldReturn:(UITextField *)textField{
+    //send a signal message
+    NSMutableDictionary *data = [[NSMutableDictionary alloc] init];
+    [data setValue:[[UIDevice currentDevice] name] forKey:@"name"];
+    [data setValue:textField.text forKey:@"text"];
+    [self sendMessage:data];
+    
+    textField.text = @"";
+    return NO;
 }
 
 @end
